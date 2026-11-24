@@ -14,6 +14,8 @@
 //   5. Cross-industry — works in a kitchen, a warehouse, or an office, no explanation needed.
 //
 // Weights mirror that priority: 30 / 25 / 20 / 15 / 10. Each sub-score is 0-10.
+// Ties are broken deterministically: higher total first, then the shorter
+// word, then alphabetical — so the same candidates always pick the same winner.
 
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -151,7 +153,10 @@ function validate(word: string): void {
 
 function main(): void {
   const ranked = CANDIDATES.map((c) => ({ ...c, total: score(c) })).sort(
-    (a, b) => b.total - a.total,
+    (a, b) =>
+      b.total - a.total ||
+      a.word.length - b.word.length ||
+      a.word.localeCompare(b.word),
   );
 
   for (const c of ranked) {
